@@ -1,0 +1,19 @@
+//=========================================================================================
+// POST
+//=========================================================================================
+sabio.services.map = sabio.services.map || {};
+
+sabio.services.map.createRadiusBuyers = function (payload, onSuccess, onError) {
+    var url = "/api/Home/MapUtility";
+
+    var settings = {
+        data: payload,
+        dataType: "json",
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        type: "POST",
+        success: onSuccess,
+        error: onError
+    };
+
+    $.ajax(url, settings);
+};

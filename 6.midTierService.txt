@@ -1,0 +1,110 @@
+using Sabio.Web.Domain;
+using Sabio.Web.Models.Requests;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Web;
+using Sabio.Data;
+using System.Net;
+using System.Xml.Linq;
+using Sabio.Web.Enums;
+using Sabio.Web.Services.Interfaces;
+
+namespace Sabio.Web.Services
+{
+using Sabio.Web.Domain;
+using Sabio.Web.Models.Requests;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Web;
+using Sabio.Data;
+using Sabio.Web.Services.Interfaces;
+
+namespace Sabio.Web.Services
+{
+    public class MapService : BaseService, IMapService
+    {
+        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        public List<MapDomain> CreateMapRadiusBuyers(MapInsertRequest model)
+        {
+            List<MapDomain> mapList = null;
+
+            try
+            {
+                DataProvider.ExecuteCmd(GetConnection, "dbo.AddressTest_Find"
+              , inputParamMapper: delegate (SqlParameterCollection paramCollection)
+              {
+                  paramCollection.AddWithValue("@latpoint", model.Latpoint);
+                  paramCollection.AddWithValue("@lngpoint", model.Lngpoint);
+                  paramCollection.AddWithValue("@radius", model.Radius);
+              }, map: delegate (IDataReader reader, short set)
+              {
+                  var singleMap = new MapDomain();
+                  int startingIndex = 0; //startingOrdinal
+
+                  singleMap.MapId = reader.GetSafeInt32(startingIndex++);
+                  singleMap.Address1 = reader.GetSafeString(startingIndex++);
+                  singleMap.Address2 = reader.GetSafeString(startingIndex++);
+                  singleMap.City = reader.GetSafeString(startingIndex++);
+                  singleMap.State = reader.GetSafeString(startingIndex++);
+                  singleMap.ZipCode = reader.GetSafeString(startingIndex++);
+                  singleMap.Latitude = reader.GetSafeDecimal(startingIndex++);
+                  singleMap.Longitude = reader.GetSafeDecimal(startingIndex++);
+                  singleMap.DistanceInMile = reader.GetSafeDouble(startingIndex++);
+
+                  if (mapList == null)
+                  {
+                      mapList = new List<MapDomain>();
+                  }
+
+                  mapList.Add(singleMap);
+              });
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return mapList;
+        }
+
+        // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        public LatLngDomain AddressGetLatLng(string address)
+        {
+            // string address = model.Address1 + ", " + model.City + ",  " + model.State + ", " + model.ZipCode;
+
+            LatLngDomain result = null;
+
+            string requestUri = string.Format("http://maps.googleapis.com/maps/api/geocode/xml?address={0}&sensor=false", Uri.EscapeDataString(address));
+
+            WebRequest request = WebRequest.Create(requestUri);
+            WebResponse response = request.GetResponse();
+            XDocument xdoc = XDocument.Load(response.GetResponseStream());
+
+            XElement resultElem = xdoc.Element("GeocodeResponse").Element("result");
+            XElement locationElement = resultElem.Element("geometry").Element("location");
+            XElement lat = locationElement.Element("lat");
+            XElement lng = locationElement.Element("lng");
+
+            if (lat != null && lng != null)
+            {
+                Decimal latitude = Decimal.Parse(lat.Value);
+
+                Decimal longitude = Decimal.Parse(lng.Value);
+                result = new LatLngDomain
+                {
+                    Latitude = latitude,
+                    Longitude = longitude
+                };
+            }
+            return result;
+        }
+
+    }
+}

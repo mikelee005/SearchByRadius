@@ -1,0 +1,194 @@
+sabio.gmarkers = [];
+sabio.currentLocation = { latValue: 33.6189, lngValue: -117.9289, radValue: 5.0 };
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Controller - mapUtil
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+(function () {
+    "use strict";
+
+    angular.module(APPNAME)
+        .controller('mapUtilController', MapController);
+
+    MapController.$inject = ['$scope', '$baseController', "$mapService", '$uibModal'];
+
+    function MapController(
+        $scope
+        , $baseController
+        , $mapService
+        , $uibModal) {
+
+        console.log('MapController');
+
+        // set vm injection
+        var vm = this;                                                                          // new {}
+        vm.$scope = $scope;
+        vm.$mapService = $mapService;
+        vm.$uibModal = $uibModal;
+
+        // initialize
+        vm.passItems = sabio.currentLocation;
+        vm.buyerList = null;
+        $scope.sortType = 'id';                                                                 // set the default sort type
+        $scope.searchName = '';                                                                 // set the default search/filter term
+
+        // functions
+        vm.openModal = _openModal;
+        vm.buyersListCreate = _buyersListCreate;
+
+        // inheritance and notify
+        $baseController.merge(vm, $baseController);                                             // simulate inheritance
+        vm.notify = vm.$mapService.getNotifier($scope);                                         // wrapper for dependency on $scope
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function _openModal() {
+
+            // instantiate modal and pass data
+            var modalInstance = vm.$uibModal.open({
+                animation: true,
+                templateUrl: '/Scripts/app/MapUtility/Templates/editMapUtilityModal.html',      // what html template to use: script tag or external file
+                controller: 'mapModalController as mdc',                                        // controller must already exist and be registered with angular for this to work
+                size: 'md',
+                resolve: {                                                                      //  anything passed to resolve can be injected into the modal controller as shown below
+                    modalInputs: function () {
+                        return vm.passItems;
+                    }
+                }
+            });
+
+            // results back from modal
+            modalInstance.result.then(function (modalOutputs) {                                 // when the modal closes, it returns a promise
+
+                vm.buyersListCreate(modalOutputs); console.log('modalOutputs = ', modalOutputs);
+
+                sabio.currentLocation.latValue = modalOutputs.latValue;                         // save data to show in the modal
+                sabio.currentLocation.lngValue = modalOutputs.lngValue;
+                sabio.currentLocation.radValue = modalOutputs.radValue;
+
+            }, function () {
+
+                console.log('Modal dismissed at: ' + new Date());
+            });
+
+        }
+
+        //++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function _buyersListCreate(mapInfo) {
+
+            console.log('_buyersListCreate: mapinfo = ', mapInfo);
+
+            var newPayload = {
+                "latpoint": mapInfo.latValue,
+                "lngpoint": mapInfo.lngValue,
+                "radius": mapInfo.radValue
+            };
+
+            vm.$mapService.createRadiusBuyers(newPayload, _createRadiusBuyersSuccess, _commonErrorHandler);
+        }
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function _createRadiusBuyersSuccess(data) {
+
+            var buyersArray = data.items;
+            console.log('_createRadiusBuyersSuccess: data = ', data);
+
+            vm.notify(function () {
+                vm.buyerList = data.items;
+            });
+
+            for (i = 0; i < sabio.gmarkers.length; i++) {
+                sabio.gmarkers[i].setMap(null);
+            }
+            sabio.gmarkers.length = 0;
+
+            if (buyersArray) {
+
+                var myCanvas = document.getElementById("map_display");
+                var myCenter = new google.maps.LatLng(33.6189, -117.9289);
+                var myOptions = { center: myCenter, zoom: 12 };
+                var myMap = new google.maps.Map(myCanvas, myOptions);
+
+                for (i = buyersArray.length - 1; i >= 0; i--) {
+
+                    myCenter = new google.maps.LatLng(buyersArray[i].latitude, buyersArray[i].longitude);
+                    var marker = new google.maps.Marker({ position: myCenter, clickable: true });
+
+                    marker.setMap(myMap);
+                    sabio.gmarkers.push(marker);
+
+                    marker.info = new google.maps.InfoWindow({
+                        content: "Company " + i
+                    });
+
+                    google.maps.event.addListener(marker, 'click', function () {
+                        this.info.open(myMap, this);
+                    });
+
+                }
+
+                myMap.panTo(myCenter);
+
+                var bounds = new google.maps.LatLngBounds();
+                for (var i = 0; i < sabio.gmarkers.length; i++) {
+                    bounds.extend(sabio.gmarkers[i].getPosition());
+                }
+
+                myMap.fitBounds(bounds);
+            }
+        }
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function _commonErrorHandler(data) {
+
+            console.log('commonErrorHandler: data = ', data);
+        }
+
+    }   // end of 'function MapController('
+})();   // end of 'Controller - mapUtil'
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Directive - printer
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+(function (angular) {
+    'use strict';
+
+    function printDirective() {
+        var printSection = document.getElementById('printSection');
+
+        if (!printSection) {
+            printSection = document.createElement('div');
+            printSection.id = 'printSection';
+            document.body.appendChild(printSection);
+        }
+
+        function link(scope, element, attrs) {
+            element.on('click', function () {
+                printSection.innerHTML = '';
+                var elemToPrint = document.getElementById(attrs.printElementId);
+                if (elemToPrint) {
+                    printElement(elemToPrint);
+                    window.print();
+                }
+            });
+
+            window.onafterprint = function () {
+                printSection.innerHTML = '';
+            }
+        }
+
+        function printElement(elem) {
+            var domClone = elem.cloneNode(true);
+            printSection.style.overflow = 'hidden';
+            printSection.appendChild(domClone);
+        }
+
+        return {
+            link: link,
+            restrict: 'A'
+        };
+    }
+
+    angular.module(APPNAME).directive('ngPrint', [printDirective]);
+}(window.angular));

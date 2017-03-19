@@ -1,0 +1,203 @@
+@{
+    ViewBag.Title = "Map Utility";
+    ViewBag.Message = "Map Utility page.";
+    Layout = "~/Views/Shared/_QuoteMuleAuthenticatedLayout.cshtml";
+}
+
+<!-- Map Utilities main menu  -->
+<div class="page-content-wrap" ng-controller="mapUtilController as muc">
+    <div class="row" id="mapUtil_main_menu_wrapper">
+
+        <!-- START MAIN MENU BUTTON SETUP -->
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading" id="mapUtil_main_menu_title">
+                    <div class="panel-title">
+                        <h1>Map Utilities</h1>
+                    </div>
+                </div>
+
+                <div class="panel-body" id="mapUtil_main_menu">
+                    <button ng-click="muc.openModal()" type="button" id="map_radius_buyers_modal" class="btn btn-info btn-lg btn-block">Find Buyers Within a Radius</button> <br />
+                    <button type="button" id="maputil_sellers_radius" class="btn btn-warning btn-lg btn-block" disabled="disabled">Find Sellers Within a Radius</button> <br />
+                    <button type="button" id="maputil_shippers_radius" class="btn btn-danger btn-lg btn-block" disabled="disabled">Find Shippers Within a Radius</button>
+                </div>
+            </div>
+        </div>
+        <!-- END MAIN MENU BUTTON SETUP -->
+        <!-- START GOOGLE MAP WITH MARKER -->
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-body panel-body-map">
+                    <div id="map_display"></div>
+                </div>
+            </div>
+        </div>
+        <!-- END GOOGLE MAP WITH MARKER -->
+
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 col-md-offset-4">
+            <form>
+                <div class="form-group">
+                    <button class="btn btn-primary pull-right" ng-print print-element-id="mapUtility_print"><i class="fa fa-print"></i> Print</button>
+                    <div class="input-group">
+                        <div class="input-group-addon"><i class="fa fa-search"></i></div>
+                        <input type="text" class="form-control" placeholder="Search by" ng-model="searchName">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6 col-md-offset-4">
+            <div class="table-responsive">
+                <table class="table" id="mapUtility_print">
+                    <thead>
+                        <tr>
+                            <th>
+                                <a href="#" ng-click="sortType='id'">CompanyId&nbsp;<span class="fa fa-caret-down"></span></a>
+                            </th>
+                            <th>
+                                <a href="#" ng-click="sortType='address1'">Address&nbsp;<span class="fa fa-caret-down"></span></a>
+                            </th>
+                            <th>
+                                <a href="#" ng-click="sortType='city'">City&nbsp;<span class="fa fa-caret-down"></span></a>
+                            </th>
+                            <th>
+                                <a href="#" ng-click="sortType='state'">State&nbsp;<span class="fa fa-caret-down"></span></a>
+                            </th>
+                            <th>
+                                <a href="#" ng-click="sortType='zipCode'">ZipCode&nbsp;<span class="fa fa-caret-down"></span></a>
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tr ng-repeat="buyer in muc.buyerList | orderBy:sortType | filter:searchName">
+                        <td>{{ buyer.id }}</td>
+                        <td>{{ buyer.address1 }}</td>
+                        <td>{{ buyer.city }}</td>
+                        <td>{{ buyer.state }}</td>
+                        <td>{{ buyer.zipCode }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- css for print handling html element -->
+<style type="text/css">
+    @@media screen {
+        #printSection {
+            display: none;
+        }
+    }
+
+    @@media print {
+        #mapUtil_main_menu_wrapper {
+            display: none;
+        }
+
+        .page-content-wrap {
+            visibility: hidden;
+        }
+
+        #printSection {
+            visibility: visible;
+        }
+
+        #printSection {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 99%;
+            height: 99%;
+            overflow: hidden;
+        }
+    }
+</style>
+
+<style type="text/css">
+    .print-element-id {
+        margin-left: 50px;
+    }
+
+    #mapUtil_main_menu {
+        background: #88ad4d;
+        padding-top: 20px;
+    }
+
+    #mapUtil_main_menu_title {
+        background: #88ad4d;
+        padding-top: 20px;
+    }
+
+    #map_display {
+        width: 100%;
+        height: 450px;
+    }
+
+    h1 {
+        font-weight: bold;
+    }
+</style>
+
+
+@section Scripts{
+
+    @*The order of the following Javascript files is important.*@
+
+
+    <!-- Javascripts for google map -->
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCzti6Y2roH_pn68PaXEhG4bkl4BZK15cw&callback=initMap">
+    </script>
+
+
+    <!-- Javascripts for service and controllers -->
+    <script src="~/Scripts/bootstrap-file-input.js"></script>
+    <script src="~/Scripts/sabio.services.map.js"></script>
+    <script src="~/Scripts/app/MapUtility/Services/MapUtilityService.js"></script>
+    <script src="~/Scripts/app/MapUtility/Controllers/MapUtilityController.js"></script>
+    <script src="~/Scripts/app/MapUtility/Controllers/MapUtilityEditModalController.js"></script>
+
+
+    <!-- callback function javascript for google map above -->
+    <script type="text/javascript">
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function initMap() {
+
+            var address = "130 Newport Center Dr., Newport Beach, CA 92660";
+            sabio.address = address;
+
+            var map = new google.maps.Map(document.getElementById('map_display'), {
+                zoom: 12,
+                center: { lat: 33.6189, lng: -117.9289 }
+            });
+
+            var geocoder = new google.maps.Geocoder();
+
+            geocodeAddress(geocoder, map);
+        }
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function geocodeAddress(geocoder, resultsMap) {
+
+            geocoder.geocode({ 'address': sabio.address }, function (results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                    resultsMap.setCenter(results[0].geometry.location);
+                    var marker = new google.maps.Marker({
+                        map: resultsMap,
+                        position: results[0].geometry.location
+                    });
+                } else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+
+    </script>
+
+
+}
