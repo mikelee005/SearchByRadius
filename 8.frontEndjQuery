@@ -1,0 +1,217 @@
+@{
+    ViewBag.Title = "Map Utility";
+    ViewBag.Message = "Map Utility page.";
+    Layout = "~/Views/Shared/_QuoteMuleAuthenticatedLayout.cshtml";
+}
+
+<!-- html code -->
+<div class="page-content-wrap">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading" style="background: #88ad4d; padding-top: 20px">
+                    <div class="panel-title" style="align-items: center">
+                        <h3 style="font-size: 200%">Map Utilities</h3>
+                    </div>
+                </div>
+
+                <div class="panel-body" style="background: #88ad4d; padding-top: 20px">
+                    <button type="button" id="map_radius_buyers_modal" class="btn btn-info btn-lg btn-block">Find Buyers Within a Radius</button> <br />
+                    <button type="button" id="maputil_sellers_radius" class="btn btn-warning btn-lg btn-block" disabled="disabled">Find Sellers Within a Radius</button> <br />
+                    <button type="button" id="maputil_shippers_radius" class="btn btn-danger btn-lg btn-block" disabled="disabled">Find Shippers Within a Radius</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <!-- START GOOGLE MAP WITH MARKER -->
+            <div class="panel panel-default">
+                <div class="panel-body panel-body-map">
+                    <div id="map_display" style="width: 100%; height: 450px;"></div>
+                </div>
+            </div>
+            <!-- END GOOGLE MAP WITH MARKER -->
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal Edit Form -->
+<div class="modal fade" id="radius_modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h1 class="modal-title">Find Buyers Within a Radius</h1>
+            </div>
+            <div class="modal-body">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <form class="form-horizontal" role="form">
+                            <div class="form-group">
+                                <label class="col-md-2 control-label">Latitude</label>
+                                <div class="col-md-10">
+                                    <input type="text" class="form-control" id="edit_modal_latpoint" value="33.6189" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-2 control-label">Longitude</label>
+                                <div class="col-md-10">
+                                    <input type="text" class="form-control" id="edit_modal_lngpoint" value="-117.9289" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-2 control-label">Radius</label>
+                                <div class="col-md-10">
+                                    <input type="text" class="form-control" id="edit_modal_radius" value="5.0" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="map_radius_buyers_submit" data-dismiss="modal">Submit</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+@section Scripts{
+    <script src="~/Scripts/sabio.js"></script>
+    <script src="~/Scripts/sabio.services.map.js"></script>
+    <script src="~/Scripts/bootstrap-file-input.js"></script>
+
+    @* startup and handlers %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*@
+    <script type="text/javascript">
+
+        sabio.services = sabio.services || {};    // namespace
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        sabio.page.startUp = function () {
+
+            sabio.gmarkers = [];
+
+            // button binding
+            $('#map_radius_buyers_modal').on("click", sabio.page.handlers.map_radius_buyers_modal_show);
+            $('#map_radius_buyers_submit').on("click", sabio.page.handlers.createRadiusBuyers);
+        }
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        sabio.page.handlers.map_radius_buyers_modal_show = function () {
+
+            console.log('map_radius_buyers_modal_show');
+
+            $('#radius_modal').modal('show');
+        };
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        sabio.page.handlers.createRadiusBuyers = function () {
+
+            console.log('createRadiusBuyers');
+
+            var newPayload = {
+                "latpoint": $('#edit_modal_latpoint').val(),
+                "lngpoint": $('#edit_modal_lngpoint').val(),
+                "radius": $('#edit_modal_radius').val()
+            };
+
+            sabio.services.createRadiusBuyers(newPayload, sabio.page.handlers.createRadiusBuyersSuccess, sabio.page.handlers.commonErrorHandler);
+        };
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        sabio.page.handlers.createRadiusBuyersSuccess = function (data) {
+
+            console.log('createRadiusBuyersSuccess: data = ', data);
+
+            var buyersArray = data.items;
+
+            for (i = 0; i < sabio.gmarkers.length; i++) {
+                sabio.gmarkers[i].setMap(null);
+            }
+
+            if (buyersArray) {
+
+                var myCanvas = document.getElementById("map_display");
+                var myCenter = new google.maps.LatLng(33.6189, -117.9289);
+                var myOptions = { center: myCenter, zoom: 12 };
+                var myMap = new google.maps.Map(myCanvas, myOptions);
+
+                for (i = buyersArray.length - 1; i >= 0; i--) {
+
+                    myCenter = new google.maps.LatLng(buyersArray[i].latitude, buyersArray[i].longitude);
+                    var marker = new google.maps.Marker({ position: myCenter, clickable: true });
+
+                    marker.setMap(myMap);
+                    sabio.gmarkers.push(marker);
+
+                    marker.info = new google.maps.InfoWindow({
+                        content: "Company " + i
+                    });
+
+                    google.maps.event.addListener(marker, 'click', function () {
+                        this.info.open(myMap, this);
+                    });
+
+                }
+
+                myMap.panTo(myCenter);
+
+                var bounds = new google.maps.LatLngBounds();
+                for (var i = 0; i < sabio.gmarkers.length; i++) {
+                    bounds.extend(sabio.gmarkers[i].getPosition());
+                }
+
+                myMap.fitBounds(bounds);
+            }
+        };
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        sabio.page.handlers.commonErrorHandler = function (data) {
+
+            console.log('commonErrorHandler: data = ', data);
+        };
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function initMap() {
+
+            var address = "130 Newport Center Dr., Newport Beach, CA 92660";
+            sabio.address = address;
+
+            var map = new google.maps.Map(document.getElementById('map_display'), {
+                zoom: 12,
+                center: { lat: 33.6189, lng: -117.9289 }
+            });
+
+            var geocoder = new google.maps.Geocoder();
+
+            geocodeAddress(geocoder, map);
+        }
+
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        function geocodeAddress(geocoder, resultsMap) {
+
+            geocoder.geocode({ 'address': sabio.address }, function (results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                    resultsMap.setCenter(results[0].geometry.location);
+
+
+                    var marker = new google.maps.Marker({
+                        map: resultsMap,
+                        position: results[0].geometry.location
+                    });
+                } else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+
+    </script>
+
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCzti6Y2roH_pn68PaXEhG4bkl4BZK15cw&callback=initMap">
+    </script>
+
+}
