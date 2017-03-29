@@ -156,7 +156,7 @@
 
     <!-- Javascripts for service and controllers -->
     <script src="~/Scripts/bootstrap-file-input.js"></script>
-    <script src="~/Scripts/sabio.services.map.js"></script>
+    <script src="~/Scripts/adr.services.map.js"></script>
     <script src="~/Scripts/app/MapUtility/Services/MapUtilityService.js"></script>
     <script src="~/Scripts/app/MapUtility/Controllers/MapUtilityController.js"></script>
     <script src="~/Scripts/app/MapUtility/Controllers/MapUtilityEditModalController.js"></script>
@@ -169,7 +169,7 @@
         function initMap() {
 
             var address = "130 Newport Center Dr., Newport Beach, CA 92660";
-            sabio.address = address;
+            adr.address = address;
 
             var map = new google.maps.Map(document.getElementById('map_display'), {
                 zoom: 12,
@@ -184,7 +184,7 @@
         //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         function geocodeAddress(geocoder, resultsMap) {
 
-            geocoder.geocode({ 'address': sabio.address }, function (results, status) {
+            geocoder.geocode({ 'address': adr.address }, function (results, status) {
                 if (status == google.maps.GeocoderStatus.OK) {
                     resultsMap.setCenter(results[0].geometry.location);
                     var marker = new google.maps.Marker({

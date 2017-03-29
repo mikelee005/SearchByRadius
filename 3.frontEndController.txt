@@ -1,5 +1,5 @@
-sabio.gmarkers = [];
-sabio.currentLocation = { latValue: 33.6189, lngValue: -117.9289, radValue: 5.0 };
+adr.gmarkers = [];
+adr.currentLocation = { latValue: 33.6189, lngValue: -117.9289, radValue: 5.0 };
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Controller - mapUtil
@@ -28,7 +28,7 @@ sabio.currentLocation = { latValue: 33.6189, lngValue: -117.9289, radValue: 5.0 
         vm.$uibModal = $uibModal;
 
         // initialize
-        vm.passItems = sabio.currentLocation;
+        vm.passItems = adr.currentLocation;
         vm.buyerList = null;
         $scope.sortType = 'id';                                                                 // set the default sort type
         $scope.searchName = '';                                                                 // set the default search/filter term
@@ -62,9 +62,9 @@ sabio.currentLocation = { latValue: 33.6189, lngValue: -117.9289, radValue: 5.0 
 
                 vm.buyersListCreate(modalOutputs); console.log('modalOutputs = ', modalOutputs);
 
-                sabio.currentLocation.latValue = modalOutputs.latValue;                         // save data to show in the modal
-                sabio.currentLocation.lngValue = modalOutputs.lngValue;
-                sabio.currentLocation.radValue = modalOutputs.radValue;
+                adr.currentLocation.latValue = modalOutputs.latValue;                         // save data to show in the modal
+                adr.currentLocation.lngValue = modalOutputs.lngValue;
+                adr.currentLocation.radValue = modalOutputs.radValue;
 
             }, function () {
 
@@ -97,10 +97,10 @@ sabio.currentLocation = { latValue: 33.6189, lngValue: -117.9289, radValue: 5.0 
                 vm.buyerList = data.items;
             });
 
-            for (i = 0; i < sabio.gmarkers.length; i++) {
-                sabio.gmarkers[i].setMap(null);
+            for (i = 0; i < adr.gmarkers.length; i++) {
+                adr.gmarkers[i].setMap(null);
             }
-            sabio.gmarkers.length = 0;
+            adr.gmarkers.length = 0;
 
             if (buyersArray) {
 
@@ -115,7 +115,7 @@ sabio.currentLocation = { latValue: 33.6189, lngValue: -117.9289, radValue: 5.0 
                     var marker = new google.maps.Marker({ position: myCenter, clickable: true });
 
                     marker.setMap(myMap);
-                    sabio.gmarkers.push(marker);
+                    adr.gmarkers.push(marker);
 
                     marker.info = new google.maps.InfoWindow({
                         content: "Company " + i
@@ -130,8 +130,8 @@ sabio.currentLocation = { latValue: 33.6189, lngValue: -117.9289, radValue: 5.0 
                 myMap.panTo(myCenter);
 
                 var bounds = new google.maps.LatLngBounds();
-                for (var i = 0; i < sabio.gmarkers.length; i++) {
-                    bounds.extend(sabio.gmarkers[i].getPosition());
+                for (var i = 0; i < adr.gmarkers.length; i++) {
+                    bounds.extend(adr.gmarkers[i].getPosition());
                 }
 
                 myMap.fitBounds(bounds);

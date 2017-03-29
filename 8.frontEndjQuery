@@ -80,27 +80,27 @@
 
 
 @section Scripts{
-    <script src="~/Scripts/sabio.js"></script>
-    <script src="~/Scripts/sabio.services.map.js"></script>
+    <script src="~/Scripts/adr.js"></script>
+    <script src="~/Scripts/adr.services.map.js"></script>
     <script src="~/Scripts/bootstrap-file-input.js"></script>
 
     @* startup and handlers %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*@
     <script type="text/javascript">
 
-        sabio.services = sabio.services || {};    // namespace
+        adr.services = adr.services || {};    // namespace
 
         //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        sabio.page.startUp = function () {
+        adr.page.startUp = function () {
 
-            sabio.gmarkers = [];
+            adr.gmarkers = [];
 
             // button binding
-            $('#map_radius_buyers_modal').on("click", sabio.page.handlers.map_radius_buyers_modal_show);
-            $('#map_radius_buyers_submit').on("click", sabio.page.handlers.createRadiusBuyers);
+            $('#map_radius_buyers_modal').on("click", adr.page.handlers.map_radius_buyers_modal_show);
+            $('#map_radius_buyers_submit').on("click", adr.page.handlers.createRadiusBuyers);
         }
 
         //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        sabio.page.handlers.map_radius_buyers_modal_show = function () {
+        adr.page.handlers.map_radius_buyers_modal_show = function () {
 
             console.log('map_radius_buyers_modal_show');
 
@@ -108,7 +108,7 @@
         };
 
         //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        sabio.page.handlers.createRadiusBuyers = function () {
+        adr.page.handlers.createRadiusBuyers = function () {
 
             console.log('createRadiusBuyers');
 
@@ -118,18 +118,18 @@
                 "radius": $('#edit_modal_radius').val()
             };
 
-            sabio.services.createRadiusBuyers(newPayload, sabio.page.handlers.createRadiusBuyersSuccess, sabio.page.handlers.commonErrorHandler);
+            adr.services.createRadiusBuyers(newPayload, adr.page.handlers.createRadiusBuyersSuccess, adr.page.handlers.commonErrorHandler);
         };
 
         //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        sabio.page.handlers.createRadiusBuyersSuccess = function (data) {
+        adr.page.handlers.createRadiusBuyersSuccess = function (data) {
 
             console.log('createRadiusBuyersSuccess: data = ', data);
 
             var buyersArray = data.items;
 
-            for (i = 0; i < sabio.gmarkers.length; i++) {
-                sabio.gmarkers[i].setMap(null);
+            for (i = 0; i < adr.gmarkers.length; i++) {
+                adr.gmarkers[i].setMap(null);
             }
 
             if (buyersArray) {
@@ -145,7 +145,7 @@
                     var marker = new google.maps.Marker({ position: myCenter, clickable: true });
 
                     marker.setMap(myMap);
-                    sabio.gmarkers.push(marker);
+                    adr.gmarkers.push(marker);
 
                     marker.info = new google.maps.InfoWindow({
                         content: "Company " + i
@@ -160,8 +160,8 @@
                 myMap.panTo(myCenter);
 
                 var bounds = new google.maps.LatLngBounds();
-                for (var i = 0; i < sabio.gmarkers.length; i++) {
-                    bounds.extend(sabio.gmarkers[i].getPosition());
+                for (var i = 0; i < adr.gmarkers.length; i++) {
+                    bounds.extend(adr.gmarkers[i].getPosition());
                 }
 
                 myMap.fitBounds(bounds);
@@ -169,7 +169,7 @@
         };
 
         //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        sabio.page.handlers.commonErrorHandler = function (data) {
+        adr.page.handlers.commonErrorHandler = function (data) {
 
             console.log('commonErrorHandler: data = ', data);
         };
@@ -178,7 +178,7 @@
         function initMap() {
 
             var address = "130 Newport Center Dr., Newport Beach, CA 92660";
-            sabio.address = address;
+            adr.address = address;
 
             var map = new google.maps.Map(document.getElementById('map_display'), {
                 zoom: 12,
@@ -193,7 +193,7 @@
         //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         function geocodeAddress(geocoder, resultsMap) {
 
-            geocoder.geocode({ 'address': sabio.address }, function (results, status) {
+            geocoder.geocode({ 'address': adr.address }, function (results, status) {
                 if (status == google.maps.GeocoderStatus.OK) {
                     resultsMap.setCenter(results[0].geometry.location);
 

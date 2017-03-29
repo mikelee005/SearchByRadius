@@ -1,0 +1,5 @@
+<add name="DefaultConnection" connectionString="Data Source=wikidata4.eyji.us-west-2.rds.amazonaws.com,1433;
+			Database=F16;User ID=F16_User;Password=Airplain;" providerName="System.Data.SqlClient" />
+			
+<add name="DefaultConnection" connectionString="Data Source=LAPTOP-MIKE;
+			Initial Catalog=address_book;Integrated Security=True" providerName="System.Data.SqlClient" />

@@ -8,13 +8,13 @@
     angular.module(APPNAME)
          .factory('$mapService', mapServiceFactory);
 
-    mapServiceFactory.$inject = ['$baseService', '$sabio'];                                         //  manually identify dependencies for injection.  $sabio is a reference to sabio.page object which is created in sabio.js
+    mapServiceFactory.$inject = ['$baseService', '$adr'];                                         //  manually identify dependencies for injection.  $adr is a reference to adr.page object which is created in adr.js
 
 
 
-    function mapServiceFactory($baseService, $sabio) {
+    function mapServiceFactory($baseService, $adr) {
 
-        var aMapServiceFactoryObject = sabio.services.map;                                          //  sabio.page has been injected as $sabio so we can reference anything that is attached to sabio.page here
+        var aMapServiceFactoryObject = adr.services.map;                                          //  adr.page has been injected as $adr so we can reference anything that is attached to adr.page here
         var newService = $baseService.merge(true, {}, aMapServiceFactoryObject, $baseService);      //  merge the jQuery object with the angular base service to simulate inheritance
 
         console.log("mapServiceFactory: object = ", aMapServiceFactoryObject);

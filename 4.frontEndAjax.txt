@@ -1,9 +1,9 @@
 //=========================================================================================
 // POST
 //=========================================================================================
-sabio.services.map = sabio.services.map || {};
+adr.services.map = adr.services.map || {};
 
-sabio.services.map.createRadiusBuyers = function (payload, onSuccess, onError) {
+adr.services.map.createRadiusBuyers = function (payload, onSuccess, onError) {
     var url = "/api/Home/MapUtility";
 
     var settings = {
